@@ -83,30 +83,10 @@ module.exports = {
       };
     }
 
-    // ── Hook: before_agent_start (priority 6) ────────────────────────────
-    // Inject [ACTIVE PROJECTS] + [ACTIVE CONSTRAINTS] + [OPEN DIRECTIVES]
-
-    api.on('before_agent_start', async (event, ctx) => {
-      if (!config.contextInjection?.enabled) return {};
-
-      try {
-        const state = getState(ctx.agentId);
-        const paths = getFilePaths(state, event);
-
-        const projects  = parseProjectsFile(paths.projects);
-        const decisions = parseDecisionsFile(paths.decisions);
-
-        if (!projects && !decisions) return {};
-
-        const block = buildContext(projects, decisions, config.contextInjection);
-        if (!block) return {};
-
-        return { prependContext: block };
-      } catch (err) {
-        api.logger.error(`[Threads] before_agent_start failed: ${err.message}`);
-        return {};
-      }
-    }, { priority: 6 });
+    // ── Context injection REMOVED ────────────────────────────────────────
+    // Projects/constraints/directives are now managed via the "projects" skill.
+    // Clint reads PROJECTS.md and DECISIONS.md on-demand via tool calls,
+    // not injected every turn. Plugin retains pulse + gateway methods.
 
     // ── Nightshift: project-pulse ────────────────────────────────────────
     // Send a brief project status via messaging when something changed.
@@ -219,6 +199,6 @@ module.exports = {
       return content || 'empty';
     }
 
-    api.logger.info('[Threads] Plugin registered — project context injection + pulse active');
+    api.logger.info('[Threads] Plugin registered — pulse + gateway methods active (context injection moved to projects skill)');
   }
 };
